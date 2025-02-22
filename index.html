@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Full-Screen Image Viewer</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+            overflow: hidden;
+        }
+        #viewer {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #currentImage {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            background: rgba(0, 0, 0, 0.5); /* Slight transparency */
+            padding: 10px 20px;
+            border-radius: 10px;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        #leftBtn, #rightBtn {
+            cursor: pointer;
+            font-size: 24px;
+            user-select: none;
+        }
+        #counter {
+            font-size: 16px;
+        }
+        #leftBtn:hover, #rightBtn:hover {
+            color: #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div id="viewer">
+        <img id="currentImage" src="1.png" alt="Current Image">
+        <div id="controls">
+            <span id="leftBtn">◄</span>
+            <span id="counter">1 / ?</span>
+            <span id="rightBtn">►</span>
+        </div>
+    </div>
+
+    <script>
+        const viewer = document.getElementById('viewer');
+        const currentImage = document.getElementById('currentImage');
+        const leftBtn = document.getElementById('leftBtn');
+        const rightBtn = document.getElementById('rightBtn');
+        const counter = document.getElementById('counter');
+        let currentIndex = 1;
+        let totalImages = 0;
+
+        // Function to check total number of images
+        function findTotalImages() {
+            let i = 1;
+            function checkNext() {
+                const img = new Image();
+                img.src = `${i}.png`;
+                img.onload = () => {
+                    i++;
+                    checkNext();
+                };
+                img.onerror = () => {
+                    totalImages = i - 1;
+                    updateCounter();
+                    if (totalImages === 0) {
+                        viewer.innerHTML = '<p style="color: white;">No images found.</p>';
+                    }
+                };
+            }
+            checkNext();
+        }
+
+        // Update the counter display
+        function updateCounter() {
+            counter.textContent = `${currentIndex} / ${totalImages}`;
+        }
+
+        // Load an image at a specific index
+        function loadImage(index) {
+            const img = new Image();
+            img.src = `${index}.png`;
+            img.alt = `Image ${index}`;
+            img.onerror = () => {
+                // If image doesn't exist, do nothing (handled by navigation limits)
+            };
+            img.onload = () => {
+                currentImage.src = img.src;
+                currentImage.alt = img.alt;
+                currentIndex = index;
+                updateCounter();
+            };
+        }
+
+        // Navigation controls
+        leftBtn.addEventListener('click', () => {
+            if (currentIndex > 1) {
+                loadImage(currentIndex - 1);
+            }
+        });
+
+        rightBtn.addEventListener('click', () => {
+            if (currentIndex < totalImages) {
+                loadImage(currentIndex + 1);
+            }
+        });
+
+        // Keyboard navigation (optional bonus)
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft' && currentIndex > 1) {
+                loadImage(currentIndex - 1);
+            } else if (e.key === 'ArrowRight' && currentIndex < totalImages) {
+                loadImage(currentIndex + 1);
+            }
+        });
+
+        // Start by finding total images and loading the first one
+        findTotalImages();
+    </script>
+</body>
+</html>
